@@ -36,8 +36,12 @@ def set_proxy(url, basic_auth=None):
         _pools['default'] = urllib3.ProxyManager(url, proxy_headers=h, **_default_pool_params)
         _onetime_pool_spec = (urllib3.ProxyManager, dict(proxy_url=url, proxy_headers=h, **_onetime_pool_params))
     else:
-        _pools['default'] = urllib3.ProxyManager(url, **_default_pool_params)
-        _onetime_pool_spec = (urllib3.ProxyManager, dict(proxy_url=url, **_onetime_pool_params))
+        if url.startswith('socks'):
+            from urllib3.contrib.socks import SOCKSProxyManager as ProxyManager
+        else:
+            from urllib3 import ProxyManager
+        _pools['default'] = ProxyManager(url, **_default_pool_params)
+        _onetime_pool_spec = (ProxyManager, dict(proxy_url=url, **_onetime_pool_params))
 
 def _create_onetime_pool():
     cls, kw = _onetime_pool_spec
